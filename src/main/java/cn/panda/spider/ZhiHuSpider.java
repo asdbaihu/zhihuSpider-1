@@ -3,6 +3,7 @@ package cn.panda.spider;
 import cn.panda.dao.ZhihuDao;
 import cn.panda.entity.ZhiHuer;
 import us.codecraft.webmagic.Page;
+import us.codecraft.webmagic.Request;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.processor.PageProcessor;
@@ -10,6 +11,7 @@ import us.codecraft.webmagic.scheduler.QueueScheduler;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -19,12 +21,12 @@ public class ZhiHuSpider implements PageProcessor {
 
 
     private Site site = Site.me().
-            addCookie("login", "\"YjY0ZGRhNThjMmVjNDcyMGFmMzQwOWUzNjEyNjgyYTc=|1484613297|cfbabbf60f3aa16f50ef48777963a499f6ba1737\"").
-            addCookie("z_c0", "Mi4wQUFCQWVxb1pBQUFBRU1LMTdva3FDeGNBQUFCaEFsVk5zZk9rV0FCTEJHdndHMmkzRlR4OGVPcFZvcFBnNmJkS1dR|1486888631|138f42da548ad49ecc74b2b0a172932a929b8aac").
+            addCookie("login", "\"MTllMWVjYWFkZTk1NDhmNjlmMzdlM2E1NjQ1MGU5ZGE=|1487207038|27d0e9ca2c312efbdb92f040cd07f0f3fe9e6d9a\"").
+            addCookie("z_c0", "Mi4wQUFCQWVxb1pBQUFBRU1LMTdva3FDeGNBQUFCaEFsVk5mb2ZNV0FCYlNOeWZwV0xuLWtpLUxWMDhjQUozQW9PVmRR|1487207041|c641962f481a01c21bd477cab4c64245a4db7247").
             setCharset("utf-8").
-            setRetryTimes(5).
-            setSleepTime(300).
-            setTimeOut(5 * 1000).
+            setRetryTimes(10).
+            setSleepTime(1002).
+            setTimeOut(10 * 1000).
             setUserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.21 Safari/537.36");
 
     String peopleLink = "https://www.zhihu.com/people/\\w+\\-*\\w*\\-*\\w*\\-*\\w*\\-*\\w*\\-*\\w*\\-*\\w*";
@@ -35,6 +37,8 @@ public class ZhiHuSpider implements PageProcessor {
 
 
     public void process(Page page) {
+
+        Long startTime = System.currentTimeMillis();
 
         ZhihuDao zhihuDao = new ZhihuDao();
 
@@ -63,10 +67,10 @@ public class ZhiHuSpider implements PageProcessor {
         String collectStr = page.getHtml().xpath(collectXpath).toString();
 
 
-        System.out.println("followingStr--->"+followingStr);
-        System.out.println("followeeStr---->"+followeeStr);
-        System.out.println("agreeStr---->"+agreeStr);
-        System.out.println("collectStr--->"+collectStr);
+//        System.out.println("followingStr--->"+followingStr);
+//        System.out.println("followeeStr---->"+followeeStr);
+//        System.out.println("agreeStr---->"+agreeStr);
+//        System.out.println("collectStr--->"+collectStr);
 
         if(null == followingStr){
             followingStr = "0";
@@ -79,7 +83,13 @@ public class ZhiHuSpider implements PageProcessor {
         if(null == agreeStr || agreeStr.trim().length()==0){
             agreeStr = "0";
         }else{
-            agreeStr = agreeStr.replace("获得 ","").replace(" 次赞同","");
+
+            if(agreeStr.contains("优秀回答者")){
+                agreeStr = "0";
+            }else{
+                agreeStr = agreeStr.replace("获得 ","").replace(" 次赞同","");
+            }
+
         }
 
 //        if(null == collectStr){
@@ -96,16 +106,17 @@ public class ZhiHuSpider implements PageProcessor {
         agree = Integer.parseInt(agreeStr);
        // collect = Integer.parseInt(page.getHtml().xpath(collectXpath).toString());
 
-        System.out.println("=========zhihu开始========");
-        System.out.println(page.getUrl());
-        System.out.println("userName------->"+userName);
-        System.out.println("userId------->"+userId);
-        System.out.println("slogan------->"+slogan);
-        System.out.println("following------->"+following);
-        System.out.println("followee------->"+followee);
-        System.out.println("agree------->"+agree);
-        System.out.println("collect------->"+collectStr);
-        System.out.println("============zhihu结束==============");
+//        System.out.println();
+//        System.out.println("=========zhihu开始========");
+//        System.out.println(page.getUrl());
+//        System.out.println("userName------->"+userName);
+//        System.out.println("userId------->"+userId);
+//        System.out.println("slogan------->"+slogan);
+//        System.out.println("following------->"+following);
+//        System.out.println("followee------->"+followee);
+//        System.out.println("agree------->"+agree);
+//        System.out.println("collect------->"+collectStr);
+//        System.out.println("============zhihu结束==============");
 
         //======开始储存======
 
@@ -132,6 +143,9 @@ public class ZhiHuSpider implements PageProcessor {
             }
         }
 
+        Long endTime = System.currentTimeMillis();
+
+        System.out.println("spend-->"+(endTime-startTime)+"ms");
 
         //======开始储存======
 
@@ -145,13 +159,23 @@ public class ZhiHuSpider implements PageProcessor {
     public static void main(String[] args) {
 
         Spider.create(new ZhiHuSpider()).
-                addUrl("https://www.zhihu.com/people/excited-vczh/following").
+                addUrl("https://www.zhihu.com/topic").
                 setScheduler(new QueueScheduler()).
-                thread(55).
+                thread(30).
+                run();
+
+    }
+
+    public static void spiderRun(){
+
+        Spider.create(new ZhiHuSpider()).
+                addUrl("https://www.zhihu.com/topic").
+                setScheduler(new QueueScheduler()).
+                thread(30).
                 run();
 
 
-
     }
+
 
 }
