@@ -17,7 +17,7 @@ public class Hello {
 
         WordDao wordDao = new WordDao();
 
-        File file = new File("d://fiveeighthouse.txt");
+        File file = new File("d://《三国演义》罗贯中.txt");
         System.out.println("file is exist:" + file.exists());
         FileReader reader = new FileReader(file);
         System.out.println(reader.getEncoding());
@@ -42,6 +42,7 @@ public class Hello {
 
         try {
             content = new String(fileContent, "UTF8");
+            content = content.trim().replace("\\n","");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
@@ -63,6 +64,10 @@ public class Hello {
 
                 try{
                      str = content.substring(i, (i + y)).trim();
+
+                     if(str.contains(",")||str.contains("。")||str.contains("，")||str.contains(".")||str.contains("!")||str.contains("！")||str.contains("(")||str.contains(")")||str.matches("\\d+")||str.contains("【")||str.contains("】")||str.contains("-")||str.contains("、")||str.contains("\\/")){
+                         continue;
+                     }
 
                      if(str.length()<=1){
                          continue;
@@ -89,7 +94,9 @@ public class Hello {
         }
 
             try {
+
                 wordDao.batchAdd(map);
+
             } catch (SQLException e) {
                 e.printStackTrace();
             } catch (ClassNotFoundException e) {

@@ -12,7 +12,7 @@ public class WordFactory {
     private static Connection connection;
 
     private String DRIVER = "com.mysql.jdbc.Driver";
-    private String URL = "jdbc:mysql://localhost:3306/houses?useUnicode=true&amp;characterEncoding=UTF-8";
+    private String URL = "jdbc:mysql://localhost:3306/weicheng?useUnicode=true&amp;characterEncoding=UTF-8";
     private String USERNAME = "root";
     private String PASSWORD = "123456";
 
